@@ -18,9 +18,9 @@ app.add_middleware(
 @app.post("/evaluate")
 async def evaluate_resume(
     resume: UploadFile = File(...),
-    jd_file: Optional[UploadFile] = File(None),
-    jd_text: Optional[str] = Form(None),
-    position: Optional[str] = Form(None),
+    jd_file: Optional[UploadFile] = File(default=None),
+    jd_text: Optional[str] = Form( default=None),
+    position: Optional[str] = Form(default=None),
 ):
     resume_text = extract_text_from_pdf(await resume.read())
 
