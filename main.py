@@ -2,7 +2,7 @@ from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from agents.fit_evaluator import evaluate_fit
 from utils.pdf_reader import extract_text_from_pdf
-from typing import Optional
+from typing import Union
 
 app = FastAPI()
 
@@ -18,19 +18,17 @@ app.add_middleware(
 @app.post("/evaluate")
 async def evaluate_resume(
     resume: UploadFile = File(...),
-    jd_file: Optional[UploadFile] = File(default=None),
-    jd_text: Optional[str] = Form( default=None),
-    position: Optional[str] = Form(default=None),
+    position: Union[str, None] = Form(default=None),
 ):
+    # Extract text from resume
     resume_text = extract_text_from_pdf(await resume.read())
 
-    # Job description logic
-    if jd_file:
-        jd_text = extract_text_from_pdf(await jd_file.read())
-    elif not jd_text and position:
-        jd_text = f"This is a job opening for the position of {position}."
-    elif not jd_text:
-        return {"error": "No job description or position provided."}
+    # If position is provided, use it to generate a simple JD
+    if position:
+        jd_text = f"This is a job opening for the position of {position}. The ideal candidate should have relevant skills, experience, and qualifications."
+    else:
+        jd_text = "This is a generic job description. The candidate should have suitable qualifications and skills."
 
+    # Evaluate resume fit
     result = evaluate_fit(resume_text, jd_text)
     return result
